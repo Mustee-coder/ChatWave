@@ -1,8 +1,34 @@
 import { useState } from "react";
-import { ShipWheelIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { Link } from "react-router";
 
 import useSignUp from "../hooks/useSignUp";
+
+// ChatWave logo mark — a small audio-wave glyph instead of a stock icon
+const WaveMark = ({ className = "" }) => (
+  <div className={`flex items-end gap-[3px] ${className}`}>
+    {[6, 14, 20, 12, 8].map((h, i) => (
+      <span
+        key={i}
+        className="w-[3px] rounded-full bg-cyan-400"
+        style={{ height: `${h}px` }}
+      />
+    ))}
+  </div>
+);
+
+// Ambient animated waveform for the right-side panel
+const AmbientWaves = () => (
+  <div className="flex items-end gap-1.5 h-24 justify-center">
+    {Array.from({ length: 24 }).map((_, i) => (
+      <span
+        key={i}
+        className="w-1.5 rounded-full bg-gradient-to-t from-cyan-400 to-indigo-400/70 animate-wave"
+        style={{ animationDelay: `${i * 0.09}s`, height: "20%" }}
+      />
+    ))}
+  </div>
+);
 
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
@@ -10,154 +36,211 @@ const SignUpPage = () => {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  // This is how we did it at first, without using our custom hook
-  // const queryClient = useQueryClient();
-  // const {
-  //   mutate: signupMutation,
-  //   isPending,
-  //   error,
-  // } = useMutation({
-  //   mutationFn: signup,
-  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-  // });
-
-  // This is how we did it using our custom hook - optimized version
   const { isPending, error, signupMutation } = useSignUp();
+
+  const handleChange = (field) => (e) => {
+    setSignupData((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
   const handleSignup = (e) => {
     e.preventDefault();
+    if (!agreedToTerms) return;
     signupMutation(signupData);
   };
 
+  const errorMessage =
+    error?.response?.data?.message ||
+    error?.message ||
+    (error ? "Something went wrong. Please try again." : null);
+
   return (
-    <div
-      className="h-screen flex items-center justify-center p-4 sm:p-6 md:p-8"
-      data-theme="forest"
-    >
-      <div className="border border-primary/25 flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-xl shadow-lg overflow-hidden">
-        {/* SIGNUP FORM - LEFT SIDE */}
-        <div className="w-full lg:w-1/2 p-4 sm:p-8 flex flex-col">
+    <div className="min-h-screen bg-[#0B1120] flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .font-body { font-family: 'Inter', sans-serif; }
+        .font-label { font-family: 'JetBrains Mono', monospace; }
+        @keyframes wave {
+          0%, 100% { height: 20%; }
+          50% { height: 100%; }
+        }
+        .animate-wave { animation: wave 1.6s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-wave { animation: none; height: 55%; }
+        }
+      `}</style>
+
+      <div className="flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-[#0F172A] rounded-2xl shadow-2xl shadow-black/40 overflow-hidden border border-white/5">
+        {/* SIGNUP FORM — LEFT SIDE */}
+        <div className="w-full lg:w-1/2 p-6 sm:p-10 flex flex-col bg-[#F8FAFC]">
           {/* LOGO */}
-          <div className="mb-4 flex items-center justify-start gap-2">
-            <ShipWheelIcon className="size-9 text-primary" />
-            <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              Streamify
+          <div className="mb-8 flex items-center gap-2.5">
+            <WaveMark />
+            <span className="font-display text-2xl font-bold text-slate-900 tracking-tight">
+              ChatWave
             </span>
           </div>
 
-          {/* ERROR MESSAGE IF ANY */}
-          {error && (
-            <div className="alert alert-error mb-4">
-              <span>{error.response.data.message}</span>
+          {errorMessage && (
+            <div
+              className="mb-5 px-4 py-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm font-body"
+              role="alert"
+            >
+              {errorMessage}
             </div>
           )}
 
           <div className="w-full">
-            <form onSubmit={handleSignup}>
-              <div className="space-y-4">
+            <form onSubmit={handleSignup} noValidate>
+              <div className="space-y-5">
                 <div>
-                  <h2 className="text-xl font-semibold">Create an Account</h2>
-                  <p className="text-sm opacity-70">
-                    Join Streamify and start your language learning adventure!
+                  <h2 className="font-display text-2xl font-bold text-slate-900">
+                    Create your account
+                  </h2>
+                  <p className="font-body text-sm text-slate-500 mt-1">
+                    Join ChatWave and start the conversation.
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {/* FULLNAME */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Full Name</span>
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="font-label text-[11px] uppercase tracking-wide text-slate-500"
+                    >
+                      Full name
                     </label>
                     <input
+                      id="fullName"
+                      name="fullName"
                       type="text"
-                      placeholder="John Doe"
-                      className="input input-bordered w-full"
+                      autoComplete="name"
+                      placeholder="Amina Yusuf"
+                      className="font-body mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition"
                       value={signupData.fullName}
-                      onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                      onChange={handleChange("fullName")}
                       required
                     />
                   </div>
+
                   {/* EMAIL */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Email</span>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="font-label text-[11px] uppercase tracking-wide text-slate-500"
+                    >
+                      Email
                     </label>
                     <input
+                      id="email"
+                      name="email"
                       type="email"
-                      placeholder="john@gmail.com"
-                      className="input input-bordered w-full"
+                      autoComplete="email"
+                      placeholder="amina@gmail.com"
+                      className="font-body mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition"
                       value={signupData.email}
-                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      onChange={handleChange("email")}
                       required
                     />
                   </div>
+
                   {/* PASSWORD */}
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Password</span>
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="font-label text-[11px] uppercase tracking-wide text-slate-500"
+                    >
+                      Password
                     </label>
-                    <input
-                      type="password"
-                      placeholder="********"
-                      className="input input-bordered w-full"
-                      value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                      required
-                    />
-                    <p className="text-xs opacity-70 mt-1">
-                      Password must be at least 6 characters long
+                    <div className="relative mt-1.5">
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        placeholder="••••••••"
+                        className="font-body w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 pr-10 text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition"
+                        value={signupData.password}
+                        onChange={handleChange("password")}
+                        minLength={6}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="size-4" />
+                        ) : (
+                          <EyeIcon className="size-4" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="font-body text-xs text-slate-400 mt-1.5">
+                      At least 6 characters
                     </p>
                   </div>
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-2">
-                      <input type="checkbox" className="checkbox checkbox-sm" required />
-                      <span className="text-xs leading-tight">
-                        I agree to the{" "}
-                        <span className="text-primary hover:underline">terms of service</span> and{" "}
-                        <span className="text-primary hover:underline">privacy policy</span>
-                      </span>
-                    </label>
-                  </div>
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 size-4 rounded border-slate-300 text-cyan-500 focus:ring-cyan-400"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      required
+                    />
+                    <span className="font-body text-xs leading-relaxed text-slate-500">
+                      I agree to the{" "}
+                      <span className="text-cyan-600 hover:underline">terms of service</span> and{" "}
+                      <span className="text-cyan-600 hover:underline">privacy policy</span>
+                    </span>
+                  </label>
                 </div>
 
-                <button className="btn btn-primary w-full" type="submit">
+                <button
+                  type="submit"
+                  disabled={isPending || !agreedToTerms}
+                  className="font-body w-full rounded-lg bg-slate-900 text-white py-2.5 font-medium text-sm hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
                   {isPending ? (
                     <>
-                      <span className="loading loading-spinner loading-xs"></span>
-                      Loading...
+                      <span className="size-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Creating account…
                     </>
                   ) : (
-                    "Create Account"
+                    "Create account"
                   )}
                 </button>
 
-                <div className="text-center mt-4">
-                  <p className="text-sm">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-primary hover:underline">
-                      Sign in
-                    </Link>
-                  </p>
-                </div>
+                <p className="font-body text-center text-sm text-slate-500">
+                  Already have an account?{" "}
+                  <Link to="/login" className="text-cyan-600 font-medium hover:underline">
+                    Sign in
+                  </Link>
+                </p>
               </div>
             </form>
           </div>
         </div>
 
-        {/* SIGNUP FORM - RIGHT SIDE */}
-        <div className="hidden lg:flex w-full lg:w-1/2 bg-primary/10 items-center justify-center">
-          <div className="max-w-md p-8">
-            {/* Illustration */}
-            <div className="relative aspect-square max-w-sm mx-auto">
-              <img src="/i.png" alt="Language connection illustration" className="w-full h-full" />
-            </div>
-
-            <div className="text-center space-y-3 mt-6">
-              <h2 className="text-xl font-semibold">Connect with language partners worldwide</h2>
-              <p className="opacity-70">
-                Practice conversations, make friends, and improve your language skills together
+        {/* SIGNUP — RIGHT SIDE */}
+        <div className="hidden lg:flex w-full lg:w-1/2 bg-[#0F172A] items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-cyan-400/10" />
+          <div className="relative max-w-sm p-10 text-center space-y-8">
+            <AmbientWaves />
+            <div className="space-y-3">
+              <h2 className="font-display text-2xl font-bold text-white">
+                Every conversation, in sync
+              </h2>
+              <p className="font-body text-slate-400">
+                Message, call, and stay connected with your people — wherever they are.
               </p>
             </div>
           </div>
