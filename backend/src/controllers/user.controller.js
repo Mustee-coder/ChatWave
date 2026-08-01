@@ -6,13 +6,28 @@ export async function getRecommendedUsers(req, res) {
     const currentUserId = req.user.id;
     const currentUser = req.user;
 
+    const pendingRequests = await FriendRequest.find({
+      $or: [
+        { sender: currentUserId },
+        { recipient: currentUserId },
+      ],
+      status: "pending",
+    });
+
+    const excludedIds = pendingRequests.reduce((ids, request) => {
+      ids.add(request.sender.toString());
+      ids.add(request.recipient.toString());
+      return ids;
+    }, new Set([currentUserId]));
+
     const recommendedUsers = await User.find({
       $and: [
-        { _id: { $ne: currentUserId } }, //exclude current user
-        { _id: { $nin: currentUser.friends } }, // exclude current user's friends
+        { _id: { $nin: Array.from(excludedIds) } },
+        { _id: { $nin: currentUser.friends } },
         { isOnboarded: true },
       ],
     });
+
     res.status(200).json(recommendedUsers);
   } catch (error) {
     console.error("Error in getRecommendedUsers controller", error.message);
