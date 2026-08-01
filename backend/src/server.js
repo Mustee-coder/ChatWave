@@ -17,7 +17,7 @@ const __dirname = path.resolve();
 
 app.use(
   cors({
-    origin: "https://chat-wave-red.vercel.app",
+    origin: ["https://chat-wave-red.vercel.app", "http://localhost:5173"],
     credentials: true, // allow frontend to send cookies
   })
 );
