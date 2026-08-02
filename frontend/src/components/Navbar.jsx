@@ -1,19 +1,26 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
+import { BellIcon, LogOutIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useLogout from "../hooks/useLogout";
+
+// ChatWave logo mark
+const WaveMark = () => (
+  <div className="flex items-end gap-[3px]">
+    {[6, 14, 20, 12, 8].map((h, i) => (
+      <span
+        key={i}
+        className="w-[3px] rounded-full bg-primary"
+        style={{ height: `${h}px` }}
+      />
+    ))}
+  </div>
+);
 
 const Navbar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const isChatPage = location.pathname?.startsWith("/chat");
-
-  // const queryClient = useQueryClient();
-  // const { mutate: logoutMutation } = useMutation({
-  //   mutationFn: logout,
-  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-  // });
 
   const { logoutMutation } = useLogout();
 
@@ -25,10 +32,8 @@ const Navbar = () => {
           {isChatPage && (
             <div className="pl-5">
               <Link to="/" className="flex items-center gap-2.5">
-                <ShipWheelIcon className="size-9 text-primary" />
-                <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary  tracking-wider">
-                  Streamify
-                </span>
+                <WaveMark />
+                <span className="text-2xl font-bold tracking-tight">ChatWave</span>
               </Link>
             </div>
           )}
@@ -39,21 +44,28 @@ const Navbar = () => {
                 <BellIcon className="h-6 w-6 text-base-content opacity-70" />
               </button>
             </Link>
-          </div>
 
-          {/* TODO */}
-          <ThemeSelector />
+            <ThemeSelector />
 
-          <div className="avatar">
-            <div className="w-9 rounded-full">
-              <img src={authUser?.profilePic} alt="User Avatar" rel="noreferrer" />
+            <div className="size-9 rounded-full overflow-hidden bg-base-300 shrink-0">
+              <img
+                src={authUser?.profilePic}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    authUser?.fullName || "U"
+                  )}&background=random`;
+                }}
+              />
             </div>
-          </div>
 
-          {/* Logout button */}
-          <button className="btn btn-ghost btn-circle" onClick={logoutMutation}>
-            <LogOutIcon className="h-6 w-6 text-base-content opacity-70" />
-          </button>
+            {/* Logout button */}
+            <button className="btn btn-ghost btn-circle" onClick={logoutMutation}>
+              <LogOutIcon className="h-6 w-6 text-base-content opacity-70" />
+            </button>
+          </div>
         </div>
       </div>
     </nav>

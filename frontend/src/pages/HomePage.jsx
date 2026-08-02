@@ -15,12 +15,10 @@ import { capitialize } from "../lib/utils";
 import FriendCard from "../components/FriendCard";
 import { getLanguageFlag } from "../lib/language";
 
-
 import NoFriendsFound from "../components/NoFriendsFound";
 
 const HomePage = () => {
   const queryClient = useQueryClient();
-  
 
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
     queryKey: ["friends"],
@@ -37,23 +35,26 @@ const HomePage = () => {
     queryFn: getOutgoingFriendReqs,
   });
 
-  const { mutate: sendRequestMutation, isPending } = useMutation({
+  const {
+    mutate: sendRequestMutation,
+    isPending,
+    variables: pendingUserId,
+  } = useMutation({
     mutationFn: sendFriendRequest,
     onSuccess: () => {
       toast.success("Friend request sent!");
       queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] });
     },
     onError: (error) => {
-      const message = error?.response?.data?.message || error?.message || "Unable to send friend request";
+      const message =
+        error?.response?.data?.message || error?.message || "Unable to send friend request";
       toast.error(message);
     },
   });
 
   const outgoingRequestsIds = useMemo(() => {
-  return new Set(
-    (outgoingFriendReqs ?? []).map((req) => req.recipient._id)
-  );
-}, [outgoingFriendReqs]);
+    return new Set((outgoingFriendReqs ?? []).map((req) => req.recipient._id));
+  }, [outgoingFriendReqs]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -107,6 +108,7 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendedUsers.map((user) => {
                 const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
+                const isThisPending = isPending && pendingUserId === user._id;
 
                 return (
                   <div
@@ -114,17 +116,27 @@ const HomePage = () => {
                     className="card bg-base-200 hover:shadow-lg transition-all duration-300"
                   >
                     <div className="card-body p-5 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="avatar size-16 rounded-full">
-                          <img src={user.profilePic} alt={user.fullName} />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-16 rounded-full overflow-hidden bg-base-300 shrink-0">
+                          <img
+                            src={user.profilePic}
+                            alt={user.fullName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                user.fullName
+                              )}&background=random`;
+                            }}
+                          />
                         </div>
 
-                        <div>
-                          <h3 className="font-semibold text-lg">{user.fullName}</h3>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-lg truncate">{user.fullName}</h3>
                           {user.location && (
-                            <div className="flex items-center text-xs opacity-70 mt-1">
-                              <MapPinIcon className="size-3 mr-1" />
-                              {user.location}
+                            <div className="flex items-center text-xs opacity-70 mt-1 min-w-0">
+                              <MapPinIcon className="size-3 mr-1 shrink-0" />
+                              <span className="truncate">{user.location}</span>
                             </div>
                           )}
                         </div>
@@ -148,15 +160,17 @@ const HomePage = () => {
                       <button
                         className={`btn w-full mt-2 ${
                           hasRequestBeenSent ? "btn-disabled" : "btn-primary"
-                        } `}
+                        }`}
                         onClick={() => sendRequestMutation(user._id)}
-                        disabled={hasRequestBeenSent || isPending}
+                        disabled={hasRequestBeenSent || isThisPending}
                       >
                         {hasRequestBeenSent ? (
                           <>
                             <CheckCircleIcon className="size-4 mr-2" />
                             Request Sent
                           </>
+                        ) : isThisPending ? (
+                          <span className="loading loading-spinner loading-sm" />
                         ) : (
                           <>
                             <UserPlusIcon className="size-4 mr-2" />
