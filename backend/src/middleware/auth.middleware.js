@@ -3,7 +3,6 @@ import User from "../models/User.js";
 
 export const protectRoute = async (req, res, next) => {
   try {
-  
     const token = req.cookies.jwt;
 
     if (!token) {
@@ -23,6 +22,12 @@ export const protectRoute = async (req, res, next) => {
     }
 
     req.user = user;
+
+    // Update lastSeen, throttled to once per minute to avoid excessive writes
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+    if (!user.lastSeen || user.lastSeen < oneMinuteAgo) {
+      User.findByIdAndUpdate(user._id, { lastSeen: new Date() }).exec();
+    }
 
     next();
   } catch (error) {

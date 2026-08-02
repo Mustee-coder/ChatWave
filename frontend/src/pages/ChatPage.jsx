@@ -11,6 +11,7 @@ import {
   MessageInput,
   MessageList,
   Thread,
+  TypingIndicator,
   Window,
 } from "stream-chat-react";
 import { StreamChat } from "stream-chat";
@@ -103,6 +104,7 @@ const ChatPage = () => {
             <Window>
               <ChannelHeader />
               <MessageList />
+              <TypingIndicator />
               <MessageInput focus />
             </Window>
           </div>

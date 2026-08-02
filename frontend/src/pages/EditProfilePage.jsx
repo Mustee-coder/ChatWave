@@ -1,21 +1,23 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { completeOnboarding } from "../lib/api.js";
+import { updateProfile } from "../lib/api.js";
 import {
+  ArrowLeftIcon,
   CameraIcon,
   LoaderIcon,
   MapPinIcon,
-  ShipWheelIcon,
   ShuffleIcon,
   SparklesIcon,
 } from "lucide-react";
 import { LANGUAGES } from "../constants";
 
-const OnboardingPage = () => {
+const EditProfilePage = () => {
   const { authUser } = useAuthUser();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formState, setFormState] = useState({
     fullName: authUser?.fullName || "",
@@ -26,26 +28,27 @@ const OnboardingPage = () => {
     profilePic: authUser?.profilePic || "",
   });
 
-  const { mutate: onboardingMutation, isPending } = useMutation({
-    mutationFn: completeOnboarding,
+  const { mutate: updateProfileMutation, isPending } = useMutation({
+    mutationFn: updateProfile,
     onSuccess: () => {
-      toast.success("Profile onboarded successfully");
+      toast.success("Profile updated successfully");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      navigate("/");
     },
-
     onError: (error) => {
-      toast.error(error.response.data.message);
+      const message =
+        error?.response?.data?.message || error?.message || "Unable to update profile";
+      toast.error(message);
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    onboardingMutation(formState);
+    updateProfileMutation(formState);
   };
 
   const handleRandomAvatar = () => {
-    const idx = Math.floor(Math.random() * 100) + 1; // 1-100 included
+    const idx = Math.floor(Math.random() * 100) + 1;
     const randomAvatar = `https://i.pravatar.cc/150?img=${idx}`;
 
     setFormState({ ...formState, profilePic: randomAvatar });
@@ -55,25 +58,30 @@ const OnboardingPage = () => {
   return (
     <div className="min-h-screen bg-base-100 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl rounded-3xl bg-base-200 border border-base-300 shadow-xl overflow-hidden">
-        {/* Top accent bar */}
         <div className="h-1 bg-gradient-to-r from-primary via-secondary to-primary" />
 
         <div className="p-6 sm:p-10">
+          <button
+            onClick={() => navigate(-1)}
+            className="btn btn-ghost btn-sm gap-2 mb-4 -ml-2"
+          >
+            <ArrowLeftIcon className="size-4" />
+            Back
+          </button>
+
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary mb-2">
               <SparklesIcon className="size-3.5" />
-              Almost there
+              Your profile
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Complete Your Profile
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Edit Profile</h1>
             <p className="text-sm opacity-60 mt-1">
-              Tell us a bit about yourself so we can match you with the right partners
+              Keep your details up to date so learners can find you
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-7">
-            {/* PROFILE PIC CONTAINER */}
+            {/* PROFILE PIC */}
             <div className="flex flex-col items-center justify-center space-y-4">
               <div className="relative">
                 <div className="size-32 rounded-full bg-base-300 overflow-hidden ring-4 ring-base-100 shadow-lg">
@@ -132,7 +140,6 @@ const OnboardingPage = () => {
 
             {/* LANGUAGES */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* NATIVE LANGUAGE */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Native Language</span>
@@ -152,7 +159,6 @@ const OnboardingPage = () => {
                 </select>
               </div>
 
-              {/* LEARNING LANGUAGE */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Learning Language</span>
@@ -160,7 +166,9 @@ const OnboardingPage = () => {
                 <select
                   name="learningLanguage"
                   value={formState.learningLanguage}
-                  onChange={(e) => setFormState({ ...formState, learningLanguage: e.target.value })}
+                  onChange={(e) =>
+                    setFormState({ ...formState, learningLanguage: e.target.value })
+                  }
                   className="select select-bordered w-full rounded-xl focus:select-primary"
                 >
                   <option value="">Select language you're learning</option>
@@ -198,14 +206,11 @@ const OnboardingPage = () => {
               type="submit"
             >
               {!isPending ? (
-                <>
-                  <ShipWheelIcon className="size-5 mr-2" />
-                  Complete Onboarding
-                </>
+                "Save Changes"
               ) : (
                 <>
                   <LoaderIcon className="animate-spin size-5 mr-2" />
-                  Onboarding...
+                  Saving...
                 </>
               )}
             </button>
@@ -215,4 +220,4 @@ const OnboardingPage = () => {
     </div>
   );
 };
-export default OnboardingPage;
+export default EditProfilePage;
