@@ -179,10 +179,14 @@ export async function onboard(req, res) {
 
         const channelId = [updatedUser._id.toString(), aiUserId].sort().join("-");
         const channel = streamClient.channel("messaging", channelId, {
-          members: [updatedUser._id.toString(), aiUserId],
-          created_by_id: aiUserId,
-        });
-        await channel.create();
+  members: [
+    updatedUser._id.toString(),
+    aiUserId,
+  ],
+  created_by_id: aiUserId,
+});
+
+await channel.watch();
 
         console.log(`AI friend + channel set up for ${updatedUser.fullName}`);
       }
