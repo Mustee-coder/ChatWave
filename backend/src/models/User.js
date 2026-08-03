@@ -7,46 +7,62 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
     email: {
       type: String,
       required: true,
       unique: true,
     },
+
     password: {
       type: String,
       required: true,
       minlength: 6,
     },
+
     bio: {
       type: String,
       default: "",
     },
+
     profilePic: {
       type: String,
       default: "",
     },
+
     nativeLanguage: {
       type: String,
       default: "",
     },
+
     learningLanguage: {
       type: String,
       default: "",
     },
+
     location: {
       type: String,
       default: "",
     },
+
     isOnboarded: {
       type: Boolean,
       default: false,
     },
+
+    // AI identifier
+    isAI: {
+      type: Boolean,
+      default: false,
+    },
+
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
+
     lastSeen: {
       type: Date,
       default: Date.now,
@@ -68,8 +84,7 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  const isPasswordCorrect = await bcrypt.compare(enteredPassword, this.password);
-  return isPasswordCorrect;
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 const User = mongoose.model("User", userSchema);

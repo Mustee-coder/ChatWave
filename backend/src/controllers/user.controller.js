@@ -21,12 +21,13 @@ export async function getRecommendedUsers(req, res) {
     }, new Set([currentUserId]));
 
     const recommendedUsers = await User.find({
-      $and: [
-        { _id: { $nin: Array.from(excludedIds) } },
-        { _id: { $nin: currentUser.friends } },
-        { isOnboarded: true },
-      ],
-    });
+  $and: [
+    { _id: { $nin: Array.from(excludedIds) } },
+    { _id: { $nin: currentUser.friends } },
+    { isOnboarded: true },
+    { isAI: false },
+  ],
+});
 
     res.status(200).json(recommendedUsers);
   } catch (error) {
