@@ -20,6 +20,7 @@ import {
 
 import { capitialize } from "../lib/utils";
 
+
 import FriendCard from "../components/FriendCard";
 import { getLanguageFlag } from "../lib/language";
 import { FriendCardSkeleton, UserCardSkeleton } from "../components/SkeletonCard";

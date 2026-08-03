@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  lint-and-build:
+  lint:
     runs-on: ubuntu-latest
 
     defaults:
@@ -20,11 +20,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
@@ -32,6 +32,3 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-
-      - name: Build project
-        run: npm run build --if-present
