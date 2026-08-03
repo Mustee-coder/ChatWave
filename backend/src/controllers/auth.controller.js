@@ -1,4 +1,5 @@
 import { upsertStreamUser } from "../lib/stream.js";
+import { streamClient } from "../lib/stream.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
@@ -167,11 +168,31 @@ export async function onboard(req, res) {
       console.log("Error updating Stream user during onboarding:", streamError.message);
     }
 
+    // Auto-add ChatWave AI as a friend, and create/warm the Stream channel
+    try {
+      const aiUserId = process.env.AI_USER_ID;
+
+      if (aiUserId) {
+        await User.findByIdAndUpdate(updatedUser._id, {
+          $addToSet: { friends: aiUserId },
+        });
+
+        const channelId = [updatedUser._id.toString(), aiUserId].sort().join("-");
+        const channel = streamClient.channel("messaging", channelId, {
+          members: [updatedUser._id.toString(), aiUserId],
+          created_by_id: aiUserId,
+        });
+        await channel.create();
+
+        console.log(`AI friend + channel set up for ${updatedUser.fullName}`);
+      }
+    } catch (aiError) {
+      console.log("Error setting up AI friend/channel:", aiError.message);
+    }
+
     res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
     console.error("Onboarding error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
-
-

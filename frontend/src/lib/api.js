@@ -70,3 +70,8 @@ export const updateProfile = async (userData) => {
   const response = await axiosInstance.post("/api/auth/onboarding", userData);
   return response.data;
 };
+
+export const sendAIMessage = async ({ channelId, message }) => {
+  const response = await axiosInstance.post("/api/ai/message", { channelId, message });
+  return response.data;
+};

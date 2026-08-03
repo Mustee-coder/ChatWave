@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 
-..str-chat__channel {
+.str-chat__channel {
   display: flex;
   align-items: center;
   justify-content: center;

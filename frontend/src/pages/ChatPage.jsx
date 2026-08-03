@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
-import { getStreamToken } from "../lib/api";
+import { getStreamToken, sendAIMessage } from "../lib/api";
 
 import {
   Channel,
@@ -21,6 +21,7 @@ import ChatLoader from "../components/ChatLoader";
 import CallButton from "../components/CallButton";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
+const AI_USER_ID = import.meta.env.VITE_AI_USER_ID;
 
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
@@ -30,6 +31,8 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(true);
 
   const { authUser } = useAuthUser();
+
+  const isAIChat = targetUserId === AI_USER_ID;
 
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
@@ -81,6 +84,32 @@ const ChatPage = () => {
     initChat();
   }, [tokenData, authUser, targetUserId]);
 
+  // If this is the AI channel, forward every message the user sends to the AI endpoint
+  useEffect(() => {
+    if (!channel || !isAIChat || !authUser) return;
+
+    const handleNewMessage = async (event) => {
+      // Only respond to messages sent by the human user, not the AI's own replies
+      if (event.user?.id !== authUser._id) return;
+
+      try {
+        await sendAIMessage({
+          channelId: channel.id,
+          message: event.message.text,
+        });
+      } catch (error) {
+        console.error("Error getting AI reply:", error);
+        toast.error("ChatWave AI couldn't respond. Please try again.");
+      }
+    };
+
+    channel.on("message.new", handleNewMessage);
+
+    return () => {
+      channel.off("message.new", handleNewMessage);
+    };
+  }, [channel, isAIChat, authUser]);
+
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
@@ -100,7 +129,7 @@ const ChatPage = () => {
       <Chat client={chatClient}>
         <Channel channel={channel}>
           <div className="w-full h-full relative flex flex-col">
-            <CallButton handleVideoCall={handleVideoCall} />
+            {!isAIChat && <CallButton handleVideoCall={handleVideoCall} />}
             <Window>
               <ChannelHeader />
               <MessageList />
