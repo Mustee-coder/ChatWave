@@ -27,6 +27,8 @@ import { FriendCardSkeleton, UserCardSkeleton } from "../components/SkeletonCard
 
 import NoFriendsFound from "../components/NoFriendsFound";
 
+const AI_USER_ID = import.meta.env.VITE_AI_USER_ID;
+
 const HomePage = () => {
   const queryClient = useQueryClient();
   
@@ -34,11 +36,17 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [languageFilter, setLanguageFilter] = useState("all");
 
-  const { data: friends = [], isLoading: loadingFriends } = useQuery({
+  const { data: allFriends = [], isLoading: loadingFriends } = useQuery({
     queryKey: ["friends"],
     queryFn: getUserFriends,
     refetchInterval: 60000,
   });
+
+  // Hide the AI assistant from the regular friends grid — it has its own floating button
+  const friends = useMemo(
+    () => allFriends.filter((friend) => friend._id !== AI_USER_ID),
+    [allFriends]
+  );
 
   const { data: recommendedUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["users"],

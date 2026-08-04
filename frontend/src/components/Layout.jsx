@@ -1,5 +1,6 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import AIFloatingButton from "./AIFloatingButton";
 
 const Layout = ({ children, showSidebar = false }) => {
   return (
@@ -11,6 +12,8 @@ const Layout = ({ children, showSidebar = false }) => {
 
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+
+      {showSidebar && <AIFloatingButton />}
     </div>
   );
 };
