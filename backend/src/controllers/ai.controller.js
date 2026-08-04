@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import streamClient from "../lib/stream.js";
+import {streamClient} from "../lib/stream.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
